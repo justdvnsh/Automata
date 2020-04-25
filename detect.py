@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import copy
+from keras.models import load_model
 
 
 cap = cv2.VideoCapture(0)
@@ -12,6 +13,34 @@ threshold = 60  # binary threshold
 blurValue = 41  # GaussianBlur parameter
 bgSubThreshold = 50
 learningRate = 0
+
+reverse_gesture_names = {0: '02_l',
+ 1: '01_palm',
+ 2: '05_thumb',
+ 3: '07_ok',
+ 4: '04_fist_moved',
+ 5: '06_index',
+ 6: '08_palm_moved',
+ 7: '09_c',
+ 8: '10_down',
+ 9: '03_fist'}
+
+model = load_model('saved_model.hdf5')
+
+def predict(image):
+    image = cv2.resize(image, (224,224))
+    image = np.array(image, dtype='float32')
+    image = np.stack((image,)*3, axis=-1)
+    image = image.reshape(1,224,224,3)
+    image /= 255
+    pred_array = model.predict(image)
+    print(f'pred_array: {pred_array}')
+    result = reverse_gesture_names[np.argmax(pred_array)]
+    print(f'Result: {result}')
+    print(max(pred_array[0]))
+    score = float("%0.2f" % (max(pred_array[0]) * 100))
+    print(result)
+    return result, score
 
 while True:
     ret, frame = cap.read()
@@ -30,8 +59,9 @@ while True:
     # cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
     # cv2.putText(thresh, f"Action: {action}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))  # Draw the text
     # Draw the text
-    # cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
-    #             (255, 255, 255))
+    prediction, score = predict(thresh)
+    cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                (255, 255, 255))
     # cv2.putText(thresh, f"Action: {action}", (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
     #             (255, 255, 255))  # Draw the text
     cv2.imshow('ori', thresh)
