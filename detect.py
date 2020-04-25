@@ -29,6 +29,7 @@ model = load_model('saved_model.hdf5')
 
 def predict(image):
     image = cv2.resize(image, (224,224))
+    cv2.imshow('resized', image)
     image = np.array(image, dtype='float32')
     image = np.stack((image,)*3, axis=-1)
     image = image.reshape(1,224,224,3)
@@ -60,7 +61,7 @@ while True:
     # cv2.putText(thresh, f"Action: {action}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))  # Draw the text
     # Draw the text
     prediction, score = predict(thresh)
-    cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
+    cv2.putText(frame, f"Prediction: {prediction} ({score}%)", (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
                 (255, 255, 255))
     # cv2.putText(thresh, f"Action: {action}", (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
     #             (255, 255, 255))  # Draw the text
